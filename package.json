@@ -1,0 +1,25 @@
+{
+  "name": "discord-game-scheduler-bot",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "deploy:commands": "bun src/deploy-commands.ts",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:migrate": "bunx drizzle-kit migrate"
+  },
+  "dependencies": {
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.44.2"
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.17.0",
+    "@types/node": "^24.5.2",
+    "bun-types": "^1.2.20",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.9.2"
+  }
+}
