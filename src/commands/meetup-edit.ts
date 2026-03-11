@@ -1,11 +1,13 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
 import {
   getMeetupByIdWithGroup,
+  getGuildDefaultTimeZone,
   listRsvpUserIdsByResponse,
   updateMeetupDetails
 } from "../db/queries";
 import { buildMeetupEmbed, buildMeetupRsvpRow } from "../utils/embeds";
 import { logger } from "../lib/logger";
+import { buildMeetupSchedule, calculateMeetupProposalExpiresAt, nowUnixSeconds } from "../utils/time";
 
 export function addMeetupEditSubcommand(builder: SlashCommandBuilder): void {
   builder.addSubcommand((sub) =>
@@ -19,7 +21,16 @@ export function addMeetupEditSubcommand(builder: SlashCommandBuilder): void {
         option.setName("title").setDescription("New title").setRequired(false)
       )
       .addStringOption((option) =>
-        option.setName("time").setDescription("New time").setRequired(false)
+        option
+          .setName("date")
+          .setDescription("New date in YYYY-MM-DD")
+          .setRequired(false)
+      )
+      .addStringOption((option) =>
+        option
+          .setName("time")
+          .setDescription("New time in HH:MM or h:MM AM/PM")
+          .setRequired(false)
       )
   );
 }
@@ -33,16 +44,55 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
   const meetupIdRaw = interaction.options.getString("meetup_id", true).trim();
   const meetupId = Number.parseInt(meetupIdRaw, 10);
   const newTitle = interaction.options.getString("title")?.trim();
-  const newTime = interaction.options.getString("time")?.trim();
+  const newDate = interaction.options.getString("date")?.trim();
+  const newTimeInput = interaction.options.getString("time")?.trim();
+
+  const hasAnyTimePart = Boolean(newDate || newTimeInput);
+  const hasAllTimeParts = Boolean(newDate && newTimeInput);
 
   if (!Number.isInteger(meetupId) || meetupId <= 0) {
     await interaction.reply({ content: "Invalid meetup_id. It should be a positive integer.", ephemeral: true });
     return;
   }
 
-  if (!newTitle && !newTime) {
-    await interaction.reply({ content: "Provide at least one field to edit: title or time.", ephemeral: true });
+  if (!newTitle && !hasAnyTimePart) {
+    await interaction.reply({ content: "Provide at least one field to edit: title or date/time.", ephemeral: true });
     return;
+  }
+
+  if (hasAnyTimePart && !hasAllTimeParts) {
+    await interaction.reply({ content: "To edit meetup time, provide both date and time.", ephemeral: true });
+    return;
+  }
+
+  let newTimeText: string | undefined;
+  let newExpiresAt: number | undefined;
+  if (hasAllTimeParts) {
+    const defaultTimeZone = await getGuildDefaultTimeZone(interaction.guildId);
+    if (!defaultTimeZone) {
+      await interaction.reply({
+        content: "This server does not have a default meetup timezone yet. Ask an admin to run `/meetup timezone-set timezone:<IANA>`.",
+        ephemeral: true
+      });
+      return;
+    }
+
+    const meetupSchedule = buildMeetupSchedule({
+      dateInput: newDate!,
+      timeInput: newTimeInput!,
+      timeZoneInput: defaultTimeZone
+    });
+
+    if (!meetupSchedule.ok) {
+      await interaction.reply({ content: meetupSchedule.error, ephemeral: true });
+      return;
+    }
+
+    newTimeText = meetupSchedule.timeText;
+    newExpiresAt = calculateMeetupProposalExpiresAt({
+      meetupStartsAtUnix: meetupSchedule.startsAtUnix,
+      nowUnix: nowUnixSeconds()
+    });
   }
 
   const meetup = await getMeetupByIdWithGroup(meetupId);
@@ -59,7 +109,8 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
   await updateMeetupDetails({
     meetupId: meetup.id,
     title: newTitle,
-    timeText: newTime
+    timeText: newTimeText,
+    expiresAt: newExpiresAt
   });
 
   const updatedMeetup = await getMeetupByIdWithGroup(meetup.id);

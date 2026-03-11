@@ -52,20 +52,23 @@ export function buildMeetupEmbed(input: {
     );
 }
 
-export function buildMeetupRsvpRow(meetupId: number): ActionRowBuilder<ButtonBuilder> {
+export function buildMeetupRsvpRow(meetupId: number, disabled = false): ActionRowBuilder<ButtonBuilder> {
   return new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(createMeetupRsvpCustomId(meetupId, "join"))
       .setLabel("Join")
-      .setStyle(ButtonStyle.Success),
+      .setStyle(ButtonStyle.Success)
+      .setDisabled(disabled),
     new ButtonBuilder()
       .setCustomId(createMeetupRsvpCustomId(meetupId, "maybe"))
       .setLabel("Maybe")
-      .setStyle(ButtonStyle.Secondary),
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(disabled),
     new ButtonBuilder()
       .setCustomId(createMeetupRsvpCustomId(meetupId, "cant"))
       .setLabel("Can't")
       .setStyle(ButtonStyle.Danger)
+      .setDisabled(disabled)
   );
 }
 

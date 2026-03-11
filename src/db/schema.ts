@@ -15,6 +15,19 @@ export const groups = sqliteTable(
   })
 );
 
+export const guildSettings = sqliteTable(
+  "guild_settings",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    guildId: text("guild_id").notNull(),
+    defaultTimeZone: text("default_time_zone").notNull(),
+    updatedAt: integer("updated_at").notNull().default(sql`(unixepoch())`)
+  },
+  (table) => ({
+    guildUnique: uniqueIndex("guild_settings_guild_unique").on(table.guildId)
+  })
+);
+
 export const groupMembers = sqliteTable(
   "group_members",
   {
@@ -39,6 +52,7 @@ export const meetups = sqliteTable("meetups", {
   title: text("title").notNull(),
   timeText: text("time_text").notNull(),
   proposedBy: text("proposed_by").notNull(),
+  expiresAt: integer("expires_at").notNull(),
   channelId: text("channel_id"),
   messageId: text("message_id"),
   createdAt: integer("created_at").notNull().default(sql`(unixepoch())`)

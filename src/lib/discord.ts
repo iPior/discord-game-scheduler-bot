@@ -21,6 +21,13 @@ import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/mee
 import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetup-status";
 import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
 import { addMeetupDeleteSubcommand, handleMeetupDelete } from "../commands/meetup-delete";
+import {
+  addMeetupTimezoneSetSubcommand,
+  addMeetupTimezoneShowSubcommand,
+  handleMeetupTimezoneSet,
+  handleMeetupTimezoneShow
+} from "../commands/meetup-timezone";
+import { addMeetupSetupSubcommand, handleMeetupSetup } from "../commands/meetup-setup";
 
 export interface CommandDefinition {
   data: SlashCommandBuilder;
@@ -90,6 +97,9 @@ function createMeetupCommand(): CommandDefinition {
   addMeetupStatusSubcommand(data);
   addMeetupEditSubcommand(data);
   addMeetupDeleteSubcommand(data);
+  addMeetupTimezoneSetSubcommand(data);
+  addMeetupTimezoneShowSubcommand(data);
+  addMeetupSetupSubcommand(data);
 
   return {
     data,
@@ -112,6 +122,21 @@ function createMeetupCommand(): CommandDefinition {
 
       if (subcommand === "delete") {
         await handleMeetupDelete(interaction);
+        return;
+      }
+
+      if (subcommand === "timezone-set") {
+        await handleMeetupTimezoneSet(interaction);
+        return;
+      }
+
+      if (subcommand === "timezone-show") {
+        await handleMeetupTimezoneShow(interaction);
+        return;
+      }
+
+      if (subcommand === "setup") {
+        await handleMeetupSetup(interaction);
         return;
       }
 

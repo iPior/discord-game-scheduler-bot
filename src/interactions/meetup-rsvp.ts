@@ -8,6 +8,7 @@ import {
 import { logger } from "../lib/logger";
 import { buildMeetupEmbed, buildMeetupRsvpRow } from "../utils/embeds";
 import { parseMeetupRsvpCustomId } from "../utils/custom-ids";
+import { nowUnixSeconds } from "../utils/time";
 
 export async function handleMeetupRsvpInteraction(interaction: ButtonInteraction): Promise<void> {
   const parsed = parseMeetupRsvpCustomId(interaction.customId);
@@ -31,6 +32,18 @@ export async function handleMeetupRsvpInteraction(interaction: ButtonInteraction
   if (interaction.guildId !== meetup.guildId) {
     await interaction.reply({
       content: "This RSVP belongs to a different server.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  if (nowUnixSeconds() >= meetup.expiresAt) {
+    await interaction.update({
+      components: [buildMeetupRsvpRow(meetup.id, true)]
+    });
+
+    await interaction.followUp({
+      content: "This meetup proposal has expired. RSVP is closed.",
       ephemeral: true
     });
     return;

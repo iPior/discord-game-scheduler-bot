@@ -4,6 +4,7 @@ import { createDiscordClient, getCommandDefinitions } from "./lib/discord";
 import { logger } from "./lib/logger";
 import { isMeetupRsvpCustomId } from "./utils/custom-ids";
 import { handleMeetupRsvpInteraction } from "./interactions/meetup-rsvp";
+import { buildOnboardingEmbed } from "./utils/onboarding";
 
 const client = createDiscordClient();
 const commands = getCommandDefinitions();
@@ -11,6 +12,27 @@ const commandMap = new Map(commands.map((command) => [command.data.name, command
 
 client.once(Events.ClientReady, (readyClient) => {
   logger.info("Bot connected", { user: readyClient.user.tag });
+});
+
+client.on(Events.GuildCreate, async (guild) => {
+  try {
+    if (!guild.systemChannel) {
+      logger.info("Joined guild with no system channel", { guildId: guild.id, guildName: guild.name });
+      return;
+    }
+
+    await guild.systemChannel.send({
+      embeds: [buildOnboardingEmbed()]
+    });
+
+    logger.info("Posted onboarding message", { guildId: guild.id, guildName: guild.name });
+  } catch (error) {
+    logger.warn("Failed to post onboarding message", {
+      guildId: guild.id,
+      guildName: guild.name,
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
 });
 
 client.on(Events.InteractionCreate, async (interaction) => {

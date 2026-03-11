@@ -1,6 +1,6 @@
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./client";
-import { groupMembers, groups, meetups, rsvps } from "./schema";
+import { groupMembers, groups, guildSettings, meetups, rsvps } from "./schema";
 import { nowUnixSeconds } from "../utils/time";
 import type { RsvpResponse } from "../utils/custom-ids";
 
@@ -117,6 +117,38 @@ export async function findGroupByNameForGuildWithOwner(
   return rows[0] ?? null;
 }
 
+export async function getGuildDefaultTimeZone(guildId: string): Promise<string | null> {
+  const rows = await db
+    .select({ defaultTimeZone: guildSettings.defaultTimeZone })
+    .from(guildSettings)
+    .where(eq(guildSettings.guildId, guildId))
+    .limit(1);
+
+  return rows[0]?.defaultTimeZone ?? null;
+}
+
+export async function upsertGuildDefaultTimeZone(input: {
+  guildId: string;
+  defaultTimeZone: string;
+}): Promise<void> {
+  const updatedAt = nowUnixSeconds();
+
+  await db
+    .insert(guildSettings)
+    .values({
+      guildId: input.guildId,
+      defaultTimeZone: input.defaultTimeZone,
+      updatedAt
+    })
+    .onConflictDoUpdate({
+      target: guildSettings.guildId,
+      set: {
+        defaultTimeZone: input.defaultTimeZone,
+        updatedAt
+      }
+    });
+}
+
 export async function listGroupMemberUserIds(groupId: number): Promise<string[]> {
   const rows = await db
     .select({ userId: groupMembers.userId })
@@ -182,6 +214,7 @@ export async function createMeetup(input: {
   groupId: number;
   title: string;
   timeText: string;
+  expiresAt: number;
   proposedByUserId: string;
 }): Promise<{ id: number; title: string; timeText: string; proposedBy: string }> {
   const [inserted] = await db
@@ -191,6 +224,7 @@ export async function createMeetup(input: {
       groupId: input.groupId,
       title: input.title.trim(),
       timeText: input.timeText.trim(),
+      expiresAt: input.expiresAt,
       proposedBy: input.proposedByUserId
     })
     .returning({
@@ -221,8 +255,9 @@ export async function updateMeetupDetails(input: {
   meetupId: number;
   title?: string;
   timeText?: string;
+  expiresAt?: number;
 }): Promise<void> {
-  const updatePayload: { title?: string; timeText?: string } = {};
+  const updatePayload: { title?: string; timeText?: string; expiresAt?: number } = {};
 
   if (typeof input.title === "string") {
     updatePayload.title = input.title.trim();
@@ -230,6 +265,10 @@ export async function updateMeetupDetails(input: {
 
   if (typeof input.timeText === "string") {
     updatePayload.timeText = input.timeText.trim();
+  }
+
+  if (typeof input.expiresAt === "number") {
+    updatePayload.expiresAt = input.expiresAt;
   }
 
   if (Object.keys(updatePayload).length === 0) {
@@ -254,6 +293,7 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
   title: string;
   timeText: string;
   proposedBy: string;
+  expiresAt: number;
   channelId: string | null;
   messageId: string | null;
 } | null> {
@@ -266,6 +306,7 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
       title: meetups.title,
       timeText: meetups.timeText,
       proposedBy: meetups.proposedBy,
+      expiresAt: meetups.expiresAt,
       channelId: meetups.channelId,
       messageId: meetups.messageId
     })

@@ -2,10 +2,12 @@ import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.j
 import {
   createMeetup,
   findGroupByNameForGuild,
+  getGuildDefaultTimeZone,
   listRsvpUserIdsByResponse,
   updateMeetupMessageLocation
 } from "../db/queries";
 import { buildMeetupEmbed, buildMeetupRsvpRow } from "../utils/embeds";
+import { buildMeetupSchedule, calculateMeetupProposalExpiresAt, nowUnixSeconds } from "../utils/time";
 
 export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
   builder.addSubcommand((sub) =>
@@ -26,8 +28,14 @@ export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
       )
       .addStringOption((option) =>
         option
+          .setName("date")
+          .setDescription("Date in YYYY-MM-DD (example: 2026-03-13)")
+          .setRequired(true)
+      )
+      .addStringOption((option) =>
+        option
           .setName("time")
-          .setDescription("Proposed time (raw text for MVP)")
+          .setDescription("Time in HH:MM or h:MM AM/PM (example: 7:00 PM)")
           .setRequired(true)
       )
   );
@@ -44,7 +52,33 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
 
   const groupName = interaction.options.getString("group", true).trim();
   const title = interaction.options.getString("title", true).trim();
-  const timeText = interaction.options.getString("time", true).trim();
+  const dateInput = interaction.options.getString("date", true).trim();
+  const timeInput = interaction.options.getString("time", true).trim();
+  const defaultTimeZone = await getGuildDefaultTimeZone(interaction.guildId);
+
+  if (!defaultTimeZone) {
+    await interaction.reply({
+      content: "This server does not have a default meetup timezone yet. Ask an admin to run `/meetup timezone-set timezone:<IANA>`.",
+      ephemeral: true
+    });
+    return;
+  }
+
+  const meetupSchedule = buildMeetupSchedule({
+    dateInput,
+    timeInput,
+    timeZoneInput: defaultTimeZone
+  });
+
+  if (!meetupSchedule.ok) {
+    await interaction.reply({ content: meetupSchedule.error, ephemeral: true });
+    return;
+  }
+
+  const expiresAt = calculateMeetupProposalExpiresAt({
+    meetupStartsAtUnix: meetupSchedule.startsAtUnix,
+    nowUnix: nowUnixSeconds()
+  });
 
   const group = await findGroupByNameForGuild(interaction.guildId, groupName);
   if (!group) {
@@ -59,7 +93,8 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     guildId: interaction.guildId,
     groupId: group.id,
     title,
-    timeText,
+    timeText: meetupSchedule.timeText,
+    expiresAt,
     proposedByUserId: interaction.user.id
   });
 
