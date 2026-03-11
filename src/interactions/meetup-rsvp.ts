@@ -1,8 +1,8 @@
 import { type ButtonInteraction } from "discord.js";
 import {
   getMeetupByIdWithGroup,
-  getRsvpCounts,
   isUserMemberOfGroup,
+  listRsvpUserIdsByResponse,
   upsertRsvp
 } from "../db/queries";
 import { logger } from "../lib/logger";
@@ -51,14 +51,22 @@ export async function handleMeetupRsvpInteraction(interaction: ButtonInteraction
     response: parsed.response
   });
 
-  const counts = await getRsvpCounts(meetup.id);
+  const [joinUserIds, maybeUserIds, cantUserIds] = await Promise.all([
+    listRsvpUserIdsByResponse(meetup.id, "join"),
+    listRsvpUserIdsByResponse(meetup.id, "maybe"),
+    listRsvpUserIdsByResponse(meetup.id, "cant")
+  ]);
   const embed = buildMeetupEmbed({
     meetupId: meetup.id,
     title: meetup.title,
     groupName: meetup.groupName,
     proposedByUserId: meetup.proposedBy,
     timeText: meetup.timeText,
-    counts
+    rsvpUserIds: {
+      join: joinUserIds,
+      maybe: maybeUserIds,
+      cant: cantUserIds
+    }
   });
 
   await interaction.update({

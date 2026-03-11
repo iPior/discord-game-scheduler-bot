@@ -1,5 +1,10 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
-import { createMeetup, findGroupByNameForGuild, updateMeetupMessageLocation, getRsvpCounts } from "../db/queries";
+import {
+  createMeetup,
+  findGroupByNameForGuild,
+  listRsvpUserIdsByResponse,
+  updateMeetupMessageLocation
+} from "../db/queries";
 import { buildMeetupEmbed, buildMeetupRsvpRow } from "../utils/embeds";
 
 export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
@@ -58,20 +63,27 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     proposedByUserId: interaction.user.id
   });
 
-  const counts = await getRsvpCounts(meetup.id);
+  const [joinUserIds, maybeUserIds, cantUserIds] = await Promise.all([
+    listRsvpUserIdsByResponse(meetup.id, "join"),
+    listRsvpUserIdsByResponse(meetup.id, "maybe"),
+    listRsvpUserIdsByResponse(meetup.id, "cant")
+  ]);
   const embed = buildMeetupEmbed({
     meetupId: meetup.id,
     title: meetup.title,
     groupName: group.name,
     proposedByUserId: meetup.proposedBy,
     timeText: meetup.timeText,
-    counts
+    rsvpUserIds: {
+      join: joinUserIds,
+      maybe: maybeUserIds,
+      cant: cantUserIds
+    }
   });
 
   const row = buildMeetupRsvpRow(meetup.id);
 
   const message = await interaction.reply({
-    content: `Meetup proposed (id: \`${meetup.id}\`)`,
     embeds: [embed],
     components: [row],
     fetchReply: true
@@ -81,5 +93,11 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     meetupId: meetup.id,
     channelId: message.channelId,
     messageId: message.id
+  });
+
+  // Keep the channel post clean; give the proposer the ID privately for /meetup status.
+  await interaction.followUp({
+    content: `Meetup created. Meetup ID: \`${meetup.id}\` (use with /meetup status).`,
+    ephemeral: true
   });
 }

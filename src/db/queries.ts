@@ -1,4 +1,4 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./client";
 import { groupMembers, groups, meetups, rsvps } from "./schema";
 import { nowUnixSeconds } from "../utils/time";
@@ -93,6 +93,80 @@ export async function findGroupByNameForGuild(guildId: string, name: string): Pr
   return rows[0] ?? null;
 }
 
+export async function findGroupByNameForGuildWithOwner(
+  guildId: string,
+  name: string
+): Promise<{ id: number; name: string; createdBy: string } | null> {
+  const normalized = name.trim();
+
+  const rows = await db
+    .select({
+      id: groups.id,
+      name: groups.name,
+      createdBy: groups.createdBy
+    })
+    .from(groups)
+    .where(
+      and(
+        eq(groups.guildId, guildId),
+        sql`lower(${groups.name}) = ${normalized.toLowerCase()}`
+      )
+    )
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function listGroupMemberUserIds(groupId: number): Promise<string[]> {
+  const rows = await db
+    .select({ userId: groupMembers.userId })
+    .from(groupMembers)
+    .where(eq(groupMembers.groupId, groupId))
+    .orderBy(asc(groupMembers.userId));
+
+  return rows.map((row) => row.userId);
+}
+
+export async function addMembersToGroup(groupId: number, userIds: string[]): Promise<number> {
+  const unique = [...new Set(userIds)];
+  if (unique.length === 0) return 0;
+
+  const before = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(groupMembers)
+    .where(eq(groupMembers.groupId, groupId));
+
+  await db
+    .insert(groupMembers)
+    .values(unique.map((userId) => ({ groupId, userId })))
+    .onConflictDoNothing();
+
+  const after = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(groupMembers)
+    .where(eq(groupMembers.groupId, groupId));
+
+  return Number(after[0]?.count ?? 0) - Number(before[0]?.count ?? 0);
+}
+
+export async function removeMembersFromGroup(groupId: number, userIds: string[]): Promise<number> {
+  const unique = [...new Set(userIds)];
+  if (unique.length === 0) return 0;
+
+  const existing = await db
+    .select({ userId: groupMembers.userId })
+    .from(groupMembers)
+    .where(and(eq(groupMembers.groupId, groupId), inArray(groupMembers.userId, unique)));
+
+  if (existing.length === 0) return 0;
+
+  await db
+    .delete(groupMembers)
+    .where(and(eq(groupMembers.groupId, groupId), inArray(groupMembers.userId, unique)));
+
+  return existing.length;
+}
+
 export async function isUserMemberOfGroup(groupId: number, userId: string): Promise<boolean> {
   const rows = await db
     .select({ id: groupMembers.id })
@@ -141,6 +215,35 @@ export async function updateMeetupMessageLocation(input: {
       messageId: input.messageId
     })
     .where(eq(meetups.id, input.meetupId));
+}
+
+export async function updateMeetupDetails(input: {
+  meetupId: number;
+  title?: string;
+  timeText?: string;
+}): Promise<void> {
+  const updatePayload: { title?: string; timeText?: string } = {};
+
+  if (typeof input.title === "string") {
+    updatePayload.title = input.title.trim();
+  }
+
+  if (typeof input.timeText === "string") {
+    updatePayload.timeText = input.timeText.trim();
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return;
+  }
+
+  await db
+    .update(meetups)
+    .set(updatePayload)
+    .where(eq(meetups.id, input.meetupId));
+}
+
+export async function deleteMeetupById(meetupId: number): Promise<void> {
+  await db.delete(meetups).where(eq(meetups.id, meetupId));
 }
 
 export async function getMeetupByIdWithGroup(meetupId: number): Promise<{

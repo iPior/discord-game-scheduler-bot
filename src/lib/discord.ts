@@ -6,11 +6,21 @@ import {
   type RESTPostAPIChatInputApplicationCommandsJSONBody
 } from "discord.js";
 
+import { addGroupHelpSubcommand, handleGroupHelp } from "../commands/help";
 import { pingCommand } from "../commands/ping";
 import { addGroupCreateSubcommand, handleGroupCreate } from "../commands/group-create";
 import { addGroupListSubcommand, handleGroupList } from "../commands/group-list";
+import { addGroupMembersSubcommand, handleGroupMembers } from "../commands/group-members";
+import {
+  addGroupAddMembersSubcommand,
+  addGroupRemoveMembersSubcommand,
+  handleGroupAddMembers,
+  handleGroupRemoveMembers
+} from "../commands/group-edit-members";
 import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/meetup-propose";
 import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetup-status";
+import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
+import { addMeetupDeleteSubcommand, handleMeetupDelete } from "../commands/meetup-delete";
 
 export interface CommandDefinition {
   data: SlashCommandBuilder;
@@ -24,6 +34,10 @@ function createGroupCommand(): CommandDefinition {
 
   addGroupCreateSubcommand(data);
   addGroupListSubcommand(data);
+  addGroupMembersSubcommand(data);
+  addGroupAddMembersSubcommand(data);
+  addGroupRemoveMembersSubcommand(data);
+  addGroupHelpSubcommand(data);
 
   return {
     data,
@@ -36,6 +50,26 @@ function createGroupCommand(): CommandDefinition {
 
       if (subcommand === "list") {
         await handleGroupList(interaction);
+        return;
+      }
+
+      if (subcommand === "members") {
+        await handleGroupMembers(interaction);
+        return;
+      }
+
+      if (subcommand === "add-members") {
+        await handleGroupAddMembers(interaction);
+        return;
+      }
+
+      if (subcommand === "remove-members") {
+        await handleGroupRemoveMembers(interaction);
+        return;
+      }
+
+      if (subcommand === "help") {
+        await handleGroupHelp(interaction);
         return;
       }
 
@@ -54,6 +88,8 @@ function createMeetupCommand(): CommandDefinition {
 
   addMeetupProposeSubcommand(data);
   addMeetupStatusSubcommand(data);
+  addMeetupEditSubcommand(data);
+  addMeetupDeleteSubcommand(data);
 
   return {
     data,
@@ -66,6 +102,16 @@ function createMeetupCommand(): CommandDefinition {
 
       if (subcommand === "status") {
         await handleMeetupStatus(interaction);
+        return;
+      }
+
+      if (subcommand === "edit") {
+        await handleMeetupEdit(interaction);
+        return;
+      }
+
+      if (subcommand === "delete") {
+        await handleMeetupDelete(interaction);
         return;
       }
 
