@@ -53,23 +53,43 @@ export async function createGroupWithMembers(input: CreateGroupInput): Promise<
   return { ok: true, groupId: inserted.id, memberCount: memberSet.size };
 }
 
-export async function listGroupsForGuild(guildId: string): Promise<Array<{ id: number; name: string; memberCount: number }>> {
+export async function listGroupsForGuild(guildId: string): Promise<
+  Array<{ id: number; name: string; memberCount: number; memberUserIds: string[] }>
+> {
   const rows = await db
     .select({
       id: groups.id,
       name: groups.name,
-      memberCount: sql<number>`count(${groupMembers.id})`
+      memberUserId: groupMembers.userId
     })
     .from(groups)
     .leftJoin(groupMembers, eq(groupMembers.groupId, groups.id))
     .where(eq(groups.guildId, guildId))
-    .groupBy(groups.id)
-    .orderBy(asc(groups.name));
+    .orderBy(asc(groups.name), asc(groupMembers.userId));
 
-  return rows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    memberCount: Number(row.memberCount)
+  const byGroup = new Map<number, { id: number; name: string; memberUserIds: string[] }>();
+
+  for (const row of rows) {
+    const existing = byGroup.get(row.id);
+    if (existing) {
+      if (row.memberUserId) {
+        existing.memberUserIds.push(row.memberUserId);
+      }
+      continue;
+    }
+
+    byGroup.set(row.id, {
+      id: row.id,
+      name: row.name,
+      memberUserIds: row.memberUserId ? [row.memberUserId] : []
+    });
+  }
+
+  return [...byGroup.values()].map((group) => ({
+    id: group.id,
+    name: group.name,
+    memberUserIds: group.memberUserIds,
+    memberCount: group.memberUserIds.length
   }));
 }
 

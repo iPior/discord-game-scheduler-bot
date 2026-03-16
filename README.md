@@ -59,11 +59,14 @@ bun run dev
 ### `/group`
 
 - `create name:<name> members:<optional csv mentions/ids>` - Create a new group.
-- `list` - List groups in the current server.
 - `members group:<group>` - Show members in a group.
 - `add-members group:<group> members:<csv mentions/ids>` - Add members to a group.
 - `remove-members group:<group> members:<csv mentions/ids>` - Remove members from a group.
 - `help` - Show in-Discord help.
+
+### `/list`
+
+- `groups` - List groups in the current server (with members).
 
 Permissions:
 

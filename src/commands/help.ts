@@ -10,7 +10,7 @@ const helpEmbed = new EmbedBuilder()
       "**Commands**",
       "- `/ping` - Check if the bot is alive.",
       "- `/group create name:<name> members:<optional>` - Create a group.",
-      "- `/group list` - List groups in this server.",
+      "- `/list groups` - List groups in this server (with members).",
       "- `/group members group:<group>` - List members in a group.",
       "- `/group add-members group:<group> members:<csv>` - Add users to a group.",
       "- `/group remove-members group:<group> members:<csv>` - Remove users from a group.",

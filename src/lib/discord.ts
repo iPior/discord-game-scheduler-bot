@@ -9,7 +9,7 @@ import {
 import { addGroupHelpSubcommand, handleGroupHelp } from "../commands/help";
 import { pingCommand } from "../commands/ping";
 import { addGroupCreateSubcommand, handleGroupCreate } from "../commands/group-create";
-import { addGroupListSubcommand, handleGroupList } from "../commands/group-list";
+import { addListGroupsSubcommand, handleListGroups } from "../commands/group-list";
 import { addGroupMembersSubcommand, handleGroupMembers } from "../commands/group-members";
 import {
   addGroupAddMembersSubcommand,
@@ -40,7 +40,6 @@ function createGroupCommand(): CommandDefinition {
     .setDescription("Create and manage meetup groups");
 
   addGroupCreateSubcommand(data);
-  addGroupListSubcommand(data);
   addGroupMembersSubcommand(data);
   addGroupAddMembersSubcommand(data);
   addGroupRemoveMembersSubcommand(data);
@@ -52,11 +51,6 @@ function createGroupCommand(): CommandDefinition {
       const subcommand = interaction.options.getSubcommand();
       if (subcommand === "create") {
         await handleGroupCreate(interaction);
-        return;
-      }
-
-      if (subcommand === "list") {
-        await handleGroupList(interaction);
         return;
       }
 
@@ -82,6 +76,30 @@ function createGroupCommand(): CommandDefinition {
 
       await interaction.reply({
         content: "Unknown group subcommand.",
+        ephemeral: true
+      });
+    }
+  };
+}
+
+function createListCommand(): CommandDefinition {
+  const data = new SlashCommandBuilder()
+    .setName("list")
+    .setDescription("List meetup data");
+
+  addListGroupsSubcommand(data);
+
+  return {
+    data,
+    async execute(interaction) {
+      const subcommand = interaction.options.getSubcommand();
+      if (subcommand === "groups") {
+        await handleListGroups(interaction);
+        return;
+      }
+
+      await interaction.reply({
+        content: "Unknown list subcommand.",
         ephemeral: true
       });
     }
@@ -149,7 +167,7 @@ function createMeetupCommand(): CommandDefinition {
 }
 
 export function getCommandDefinitions(): CommandDefinition[] {
-  return [pingCommand, createGroupCommand(), createMeetupCommand()];
+  return [pingCommand, createGroupCommand(), createListCommand(), createMeetupCommand()];
 }
 
 export function getCommandPayloads(): RESTPostAPIChatInputApplicationCommandsJSONBody[] {
