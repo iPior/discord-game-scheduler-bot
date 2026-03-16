@@ -51,8 +51,10 @@ export const meetups = sqliteTable("meetups", {
     .references(() => groups.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   timeText: text("time_text").notNull(),
+  startsAt: integer("starts_at"),
   proposedBy: text("proposed_by").notNull(),
   expiresAt: integer("expires_at").notNull(),
+  reminderSentAt: integer("reminder_sent_at"),
   channelId: text("channel_id"),
   messageId: text("message_id"),
   createdAt: integer("created_at").notNull().default(sql`(unixepoch())`)

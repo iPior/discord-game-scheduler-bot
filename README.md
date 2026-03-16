@@ -96,3 +96,8 @@ Meetup posts include three RSVP buttons:
 - `Can't`
 
 Only members of the meetup's group can RSVP.
+
+## Notifications
+
+- When a meetup is proposed, group members are @-mentioned in the channel.
+- Users who RSVP `Join` are @-mentioned 1 hour before meetup start.

@@ -30,6 +30,8 @@ const helpEmbed = new EmbedBuilder()
       "",
       "**RSVP rules**",
       "Only members of the meetup's group can RSVP.",
+      "Users who RSVP Join get a reminder ping 1 hour before start.",
+      "When a meetup is proposed, group members are pinged in-channel.",
       "",
       "**Meetup IDs**",
       "After proposing, the bot sends the proposer the meetup ID in an ephemeral message.",

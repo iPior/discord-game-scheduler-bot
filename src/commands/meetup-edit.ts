@@ -66,6 +66,7 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
   }
 
   let newTimeText: string | undefined;
+  let newStartsAt: number | undefined;
   let newExpiresAt: number | undefined;
   if (hasAllTimeParts) {
     const defaultTimeZone = await getGuildDefaultTimeZone(interaction.guildId);
@@ -88,10 +89,20 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
       return;
     }
 
+    const nowUnix = nowUnixSeconds();
+    if (meetupSchedule.startsAtUnix <= nowUnix) {
+      await interaction.reply({
+        content: "Meetup time must be in the future. Please choose a date/time after now.",
+        ephemeral: true
+      });
+      return;
+    }
+
     newTimeText = meetupSchedule.timeText;
+    newStartsAt = meetupSchedule.startsAtUnix;
     newExpiresAt = calculateMeetupProposalExpiresAt({
       meetupStartsAtUnix: meetupSchedule.startsAtUnix,
-      nowUnix: nowUnixSeconds()
+      nowUnix
     });
   }
 
@@ -110,6 +121,7 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
     meetupId: meetup.id,
     title: newTitle,
     timeText: newTimeText,
+    startsAt: newStartsAt,
     expiresAt: newExpiresAt
   });
 

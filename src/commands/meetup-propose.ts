@@ -3,11 +3,20 @@ import {
   createMeetup,
   findGroupByNameForGuild,
   getGuildDefaultTimeZone,
+  listGroupMemberUserIds,
   listRsvpUserIdsByResponse,
   updateMeetupMessageLocation
 } from "../db/queries";
 import { buildMeetupEmbed, buildMeetupRsvpRow } from "../utils/embeds";
 import { buildMeetupSchedule, calculateMeetupProposalExpiresAt, nowUnixSeconds } from "../utils/time";
+
+function chunkUserIds(userIds: string[], chunkSize: number): string[][] {
+  const chunks: string[][] = [];
+  for (let i = 0; i < userIds.length; i += chunkSize) {
+    chunks.push(userIds.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
 
 export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
   builder.addSubcommand((sub) =>
@@ -75,9 +84,18 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     return;
   }
 
+  const nowUnix = nowUnixSeconds();
+  if (meetupSchedule.startsAtUnix <= nowUnix) {
+    await interaction.reply({
+      content: "Meetup time must be in the future. Please choose a date/time after now.",
+      ephemeral: true
+    });
+    return;
+  }
+
   const expiresAt = calculateMeetupProposalExpiresAt({
     meetupStartsAtUnix: meetupSchedule.startsAtUnix,
-    nowUnix: nowUnixSeconds()
+    nowUnix
   });
 
   const group = await findGroupByNameForGuild(interaction.guildId, groupName);
@@ -94,9 +112,13 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     groupId: group.id,
     title,
     timeText: meetupSchedule.timeText,
+    startsAt: meetupSchedule.startsAtUnix,
     expiresAt,
     proposedByUserId: interaction.user.id
   });
+
+  const groupMemberUserIds = await listGroupMemberUserIds(group.id);
+  const mentionTargets = groupMemberUserIds.filter((userId) => userId !== interaction.user.id);
 
   const [joinUserIds, maybeUserIds, cantUserIds] = await Promise.all([
     listRsvpUserIdsByResponse(meetup.id, "join"),
@@ -135,4 +157,19 @@ export async function handleMeetupPropose(interaction: ChatInputCommandInteracti
     content: `Meetup created. Meetup ID: \`${meetup.id}\` (use with /meetup status).`,
     ephemeral: true
   });
+
+  if (mentionTargets.length > 0) {
+    const mentionChunks = chunkUserIds(mentionTargets, 40);
+    for (const [index, mentionChunk] of mentionChunks.entries()) {
+      const mentions = mentionChunk.map((userId) => `<@${userId}>`).join(" ");
+      const prefix =
+        index === 0
+          ? `Group **${group.name}** has a new meetup proposal: **${meetup.title}**.`
+          : `More members for **${group.name}** meetup:`;
+
+      await interaction.followUp({
+        content: `${prefix} ${mentions}`
+      });
+    }
+  }
 }

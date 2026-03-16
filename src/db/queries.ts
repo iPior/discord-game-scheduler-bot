@@ -234,6 +234,7 @@ export async function createMeetup(input: {
   groupId: number;
   title: string;
   timeText: string;
+  startsAt: number;
   expiresAt: number;
   proposedByUserId: string;
 }): Promise<{ id: number; title: string; timeText: string; proposedBy: string }> {
@@ -244,6 +245,7 @@ export async function createMeetup(input: {
       groupId: input.groupId,
       title: input.title.trim(),
       timeText: input.timeText.trim(),
+      startsAt: input.startsAt,
       expiresAt: input.expiresAt,
       proposedBy: input.proposedByUserId
     })
@@ -275,9 +277,10 @@ export async function updateMeetupDetails(input: {
   meetupId: number;
   title?: string;
   timeText?: string;
+  startsAt?: number;
   expiresAt?: number;
 }): Promise<void> {
-  const updatePayload: { title?: string; timeText?: string; expiresAt?: number } = {};
+  const updatePayload: { title?: string; timeText?: string; startsAt?: number; expiresAt?: number; reminderSentAt?: number | null } = {};
 
   if (typeof input.title === "string") {
     updatePayload.title = input.title.trim();
@@ -287,8 +290,16 @@ export async function updateMeetupDetails(input: {
     updatePayload.timeText = input.timeText.trim();
   }
 
+  if (typeof input.startsAt === "number") {
+    updatePayload.startsAt = input.startsAt;
+  }
+
   if (typeof input.expiresAt === "number") {
     updatePayload.expiresAt = input.expiresAt;
+  }
+
+  if (typeof input.startsAt === "number" || typeof input.expiresAt === "number") {
+    updatePayload.reminderSentAt = null;
   }
 
   if (Object.keys(updatePayload).length === 0) {
@@ -312,8 +323,10 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
   groupName: string;
   title: string;
   timeText: string;
+  startsAt: number | null;
   proposedBy: string;
   expiresAt: number;
+  reminderSentAt: number | null;
   channelId: string | null;
   messageId: string | null;
 } | null> {
@@ -325,8 +338,10 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
       groupName: groups.name,
       title: meetups.title,
       timeText: meetups.timeText,
+      startsAt: meetups.startsAt,
       proposedBy: meetups.proposedBy,
       expiresAt: meetups.expiresAt,
+      reminderSentAt: meetups.reminderSentAt,
       channelId: meetups.channelId,
       messageId: meetups.messageId
     })
@@ -336,6 +351,60 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function listMeetupsDueForOneHourReminder(nowUnix: number): Promise<
+  Array<{
+    id: number;
+    guildId: string;
+    groupName: string;
+    title: string;
+    startsAt: number;
+    channelId: string;
+  }>
+> {
+  const reminderThreshold = nowUnix + 60 * 60;
+
+  const rows = await db
+    .select({
+      id: meetups.id,
+      guildId: meetups.guildId,
+      groupName: groups.name,
+      title: meetups.title,
+      startsAt: meetups.startsAt,
+      channelId: meetups.channelId
+    })
+    .from(meetups)
+    .innerJoin(groups, eq(groups.id, meetups.groupId))
+    .where(
+      and(
+        sql`${meetups.reminderSentAt} is null`,
+        sql`${meetups.channelId} is not null`,
+        sql`${meetups.startsAt} <= ${reminderThreshold}`,
+        sql`${meetups.startsAt} > ${nowUnix}`
+      )
+    );
+
+  return rows
+    .filter((row): row is typeof row & { channelId: string } => typeof row.channelId === "string")
+    .map((row) => ({
+      id: row.id,
+      guildId: row.guildId,
+      groupName: row.groupName,
+      title: row.title,
+      startsAt: row.startsAt,
+      channelId: row.channelId
+    }))
+    .filter((row): row is { id: number; guildId: string; groupName: string; title: string; startsAt: number; channelId: string } =>
+      typeof row.startsAt === "number"
+    );
+}
+
+export async function markMeetupOneHourReminderSent(meetupId: number, sentAtUnix: number): Promise<void> {
+  await db
+    .update(meetups)
+    .set({ reminderSentAt: sentAtUnix })
+    .where(eq(meetups.id, meetupId));
 }
 
 export async function upsertRsvp(input: {

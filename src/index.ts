@@ -5,6 +5,7 @@ import { logger } from "./lib/logger";
 import { isMeetupRsvpCustomId } from "./utils/custom-ids";
 import { handleMeetupRsvpInteraction } from "./interactions/meetup-rsvp";
 import { buildOnboardingEmbed } from "./utils/onboarding";
+import { startMeetupReminderLoop } from "./services/meetup-reminders";
 
 const client = createDiscordClient();
 const commands = getCommandDefinitions();
@@ -12,6 +13,7 @@ const commandMap = new Map(commands.map((command) => [command.data.name, command
 
 client.once(Events.ClientReady, (readyClient) => {
   logger.info("Bot connected", { user: readyClient.user.tag });
+  startMeetupReminderLoop(readyClient);
 });
 
 client.on(Events.GuildCreate, async (guild) => {
