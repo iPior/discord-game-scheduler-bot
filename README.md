@@ -65,6 +65,18 @@ What it does:
 - Runs DB migrations
 - Restarts `discord-bot` service
 
+To stop the running bot service:
+
+```bash
+./stop.sh
+```
+
+You can also pass a custom service name:
+
+```bash
+./stop.sh my-service-name
+```
+
 ## Discord Slash Commands
 
 ### `/ping`
