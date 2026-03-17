@@ -50,6 +50,21 @@ bun run dev
 - `bun run db:generate` - Generate Drizzle migration files.
 - `bun run db:migrate` - Apply migrations.
 
+## VPS Deploy Script
+
+For VPS deployments with a `systemd` service called `discord-bot`, use:
+
+```bash
+./deploy.sh
+```
+
+What it does:
+
+- Pulls latest code with `git pull --ff-only`
+- Installs dependencies with Bun
+- Runs DB migrations
+- Restarts `discord-bot` service
+
 ## Discord Slash Commands
 
 ### `/ping`
