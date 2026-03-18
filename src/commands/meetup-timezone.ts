@@ -6,6 +6,29 @@ import {
 import { getGuildDefaultTimeZone, upsertGuildDefaultTimeZone } from "../db/queries";
 import { validateIanaTimeZone } from "../utils/time";
 
+const COMMON_TIMEZONE_CHOICES = [
+  { name: "US Eastern (New York)", value: "America/New_York" },
+  { name: "US Central (Chicago)", value: "America/Chicago" },
+  { name: "US Mountain (Denver)", value: "America/Denver" },
+  { name: "US Pacific (Los Angeles)", value: "America/Los_Angeles" },
+  { name: "US Alaska (Anchorage)", value: "America/Anchorage" },
+  { name: "US Hawaii (Honolulu)", value: "Pacific/Honolulu" },
+  { name: "Canada Atlantic (Halifax)", value: "America/Halifax" },
+  { name: "Brazil (Sao Paulo)", value: "America/Sao_Paulo" },
+  { name: "UK (London)", value: "Europe/London" },
+  { name: "Central Europe (Berlin)", value: "Europe/Berlin" },
+  { name: "Poland (Warsaw)", value: "Europe/Warsaw" },
+  { name: "Turkey (Istanbul)", value: "Europe/Istanbul" },
+  { name: "South Africa (Johannesburg)", value: "Africa/Johannesburg" },
+  { name: "India (Kolkata)", value: "Asia/Kolkata" },
+  { name: "Singapore", value: "Asia/Singapore" },
+  { name: "Japan (Tokyo)", value: "Asia/Tokyo" },
+  { name: "South Korea (Seoul)", value: "Asia/Seoul" },
+  { name: "Australia East (Sydney)", value: "Australia/Sydney" },
+  { name: "New Zealand (Auckland)", value: "Pacific/Auckland" },
+  { name: "UTC", value: "UTC" }
+] as const;
+
 function canManageTimezone(interaction: ChatInputCommandInteraction): boolean {
   return Boolean(interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild));
 }
@@ -18,7 +41,8 @@ export function addMeetupTimezoneSetSubcommand(builder: SlashCommandBuilder): vo
       .addStringOption((option) =>
         option
           .setName("timezone")
-          .setDescription("IANA timezone (example: America/New_York)")
+          .setDescription("Pick from list or type a region/city timezone")
+          .addChoices(...COMMON_TIMEZONE_CHOICES)
           .setRequired(true)
       )
   );
@@ -48,7 +72,7 @@ export async function handleMeetupTimezoneSet(interaction: ChatInputCommandInter
 
   if (!validated.ok) {
     await interaction.reply({
-      content: "Invalid timezone. Use an IANA value like `America/New_York`.",
+      content: "Invalid timezone. Pick from the command list or use a region/city value like `America/New_York`.",
       ephemeral: true
     });
     return;
@@ -75,7 +99,7 @@ export async function handleMeetupTimezoneShow(interaction: ChatInputCommandInte
 
   if (!defaultTimeZone) {
     await interaction.reply({
-      content: "No default meetup timezone is set yet. Use `/meetup timezone-set timezone:<IANA>`.",
+      content: "No default meetup timezone is set yet. Use `/meetup timezone-set` and pick one from the list.",
       ephemeral: true
     });
     return;

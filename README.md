@@ -105,7 +105,7 @@ Permissions:
 - `status meetup_id:<id>` - Show RSVP status for a meetup.
 - `edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.
 - `delete meetup_id:<id>` - Delete your meetup.
-- `timezone-set timezone:<IANA>` - Set default server timezone.
+- `timezone-set timezone:<region/city>` - Set default server timezone (with common choices in the command picker).
 - `timezone-show` - Show current default server timezone.
 - `setup` - Show setup guide embed.
 

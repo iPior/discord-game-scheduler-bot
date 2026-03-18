@@ -18,7 +18,7 @@ const helpEmbed = new EmbedBuilder()
       "- `/meetup status meetup_id:<id>` - Show RSVP lists for a meetup.",
       "- `/meetup edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.",
       "- `/meetup delete meetup_id:<id>` - Delete your meetup.",
-      "- `/meetup timezone-set timezone:<IANA>` - Set server default meetup timezone (Manage Server).",
+      "- `/meetup timezone-set timezone:<region/city>` - Set server default meetup timezone (with common choices, Manage Server).",
       "- `/meetup timezone-show` - Show server default meetup timezone.",
       "- `/meetup setup` - Show setup guide for new servers.",
       "",

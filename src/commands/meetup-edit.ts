@@ -72,7 +72,7 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
     const defaultTimeZone = await getGuildDefaultTimeZone(interaction.guildId);
     if (!defaultTimeZone) {
       await interaction.reply({
-        content: "This server does not have a default meetup timezone yet. Ask an admin to run `/meetup timezone-set timezone:<IANA>`.",
+        content: "This server does not have a default meetup timezone yet. Ask an admin to run `/meetup timezone-set` and pick one from the list.",
         ephemeral: true
       });
       return;

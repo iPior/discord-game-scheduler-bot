@@ -9,7 +9,7 @@ export function buildOnboardingEmbed(): EmbedBuilder {
         "Meetup Bot helps your server plan events with group-based RSVPs.",
         "",
         "**Quick setup**",
-        "1) Set your server timezone: `/meetup timezone-set timezone:<IANA>`",
+        "1) Set your server timezone: `/meetup timezone-set timezone:<region/city>` (or pick from common choices)",
         "2) Create a group: `/group create name:<name> members:<optional>`",
         "3) Propose a meetup: `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<HH:MM or h:MM AM/PM>`",
         "",
