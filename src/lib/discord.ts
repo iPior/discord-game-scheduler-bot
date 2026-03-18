@@ -2,6 +2,7 @@ import {
   Client,
   GatewayIntentBits,
   SlashCommandBuilder,
+  type AutocompleteInteraction,
   type ChatInputCommandInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody
 } from "discord.js";
@@ -17,6 +18,7 @@ import {
   handleGroupAddMembers,
   handleGroupRemoveMembers
 } from "../commands/group-edit-members";
+import { handleGroupNameAutocomplete } from "../commands/group-autocomplete";
 import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/meetup-propose";
 import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetup-status";
 import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
@@ -32,6 +34,7 @@ import { addMeetupSetupSubcommand, handleMeetupSetup } from "../commands/meetup-
 export interface CommandDefinition {
   data: SlashCommandBuilder;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
+  autocomplete?: (interaction: AutocompleteInteraction) => Promise<void>;
 }
 
 function createGroupCommand(): CommandDefinition {
@@ -78,6 +81,16 @@ function createGroupCommand(): CommandDefinition {
         content: "Unknown group subcommand.",
         ephemeral: true
       });
+    },
+    async autocomplete(interaction) {
+      const subcommand = interaction.options.getSubcommand();
+
+      if (subcommand === "members" || subcommand === "add-members" || subcommand === "remove-members") {
+        await handleGroupNameAutocomplete(interaction);
+        return;
+      }
+
+      await interaction.respond([]);
     }
   };
 }
@@ -162,6 +175,16 @@ function createMeetupCommand(): CommandDefinition {
         content: "Unknown meetup subcommand.",
         ephemeral: true
       });
+    },
+    async autocomplete(interaction) {
+      const subcommand = interaction.options.getSubcommand();
+
+      if (subcommand === "propose") {
+        await handleGroupNameAutocomplete(interaction);
+        return;
+      }
+
+      await interaction.respond([]);
     }
   };
 }

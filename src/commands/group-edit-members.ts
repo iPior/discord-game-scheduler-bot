@@ -24,7 +24,11 @@ export function addGroupAddMembersSubcommand(builder: SlashCommandBuilder): void
       .setName("add-members")
       .setDescription("Add members to a group")
       .addStringOption((option) =>
-        option.setName("group").setDescription("Group name").setRequired(true)
+        option
+          .setName("group")
+          .setDescription("Group name (autocomplete)")
+          .setAutocomplete(true)
+          .setRequired(true)
       )
       .addStringOption((option) =>
         option
@@ -41,7 +45,11 @@ export function addGroupRemoveMembersSubcommand(builder: SlashCommandBuilder): v
       .setName("remove-members")
       .setDescription("Remove members from a group")
       .addStringOption((option) =>
-        option.setName("group").setDescription("Group name").setRequired(true)
+        option
+          .setName("group")
+          .setDescription("Group name (autocomplete)")
+          .setAutocomplete(true)
+          .setRequired(true)
       )
       .addStringOption((option) =>
         option

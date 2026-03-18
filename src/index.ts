@@ -39,6 +39,17 @@ client.on(Events.GuildCreate, async (guild) => {
 
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
+    if (interaction.isAutocomplete()) {
+      const command = commandMap.get(interaction.commandName);
+      if (!command?.autocomplete) {
+        await interaction.respond([]);
+        return;
+      }
+
+      await command.autocomplete(interaction);
+      return;
+    }
+
     if (interaction.isChatInputCommand()) {
       const command = commandMap.get(interaction.commandName);
       if (!command) {

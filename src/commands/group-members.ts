@@ -24,7 +24,8 @@ export function addGroupMembersSubcommand(builder: SlashCommandBuilder): void {
       .addStringOption((option) =>
         option
           .setName("group")
-          .setDescription("Group name")
+          .setDescription("Group name (autocomplete)")
+          .setAutocomplete(true)
           .setRequired(true)
       )
   );
