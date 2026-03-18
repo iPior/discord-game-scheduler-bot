@@ -186,7 +186,7 @@ function createMeetupCommand(): CommandDefinition {
         return;
       }
 
-      if ((subcommand === "propose" || subcommand === "edit") && (focused.name === "date" || focused.name === "time")) {
+      if ((subcommand === "propose" || subcommand === "edit") && focused.name === "date") {
         await handleMeetupDateTimeAutocomplete(interaction);
         return;
       }

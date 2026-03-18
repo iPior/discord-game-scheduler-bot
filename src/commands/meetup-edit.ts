@@ -31,7 +31,6 @@ export function addMeetupEditSubcommand(builder: SlashCommandBuilder): void {
         option
           .setName("time")
           .setDescription("New time like 7pm or 7:15pm")
-          .setAutocomplete(true)
           .setRequired(false)
       )
   );

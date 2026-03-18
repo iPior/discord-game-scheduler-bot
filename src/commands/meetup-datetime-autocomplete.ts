@@ -62,7 +62,10 @@ function getDateChoices(query: string, timeZone: string): Choice[] {
     ? { name: `Today (${toDateLabel(todayValue, timeZone)})`, value: "today" }
     : null;
 
-  const allChoices = todayAlias ? [todayAlias, ...generated] : generated;
+  const dateChoicesWithoutToday = todayValue
+    ? generated.filter((choice) => choice.value !== todayValue)
+    : generated;
+  const allChoices = todayAlias ? [todayAlias, ...dateChoicesWithoutToday] : generated;
 
   if (query.length === 0) {
     return allChoices.slice(0, MAX_CHOICES);

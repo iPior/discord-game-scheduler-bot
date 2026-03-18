@@ -47,7 +47,6 @@ export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
         option
           .setName("time")
           .setDescription("Time like 7pm or 7:15pm")
-          .setAutocomplete(true)
           .setRequired(true)
       )
   );
