@@ -24,12 +24,14 @@ export function addMeetupEditSubcommand(builder: SlashCommandBuilder): void {
         option
           .setName("date")
           .setDescription("New date in YYYY-MM-DD")
+          .setAutocomplete(true)
           .setRequired(false)
       )
       .addStringOption((option) =>
         option
           .setName("time")
-          .setDescription("New time in HH:MM or h:MM AM/PM")
+          .setDescription("New time like 7pm or 7:15pm")
+          .setAutocomplete(true)
           .setRequired(false)
       )
   );

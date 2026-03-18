@@ -11,7 +11,7 @@ export function buildOnboardingEmbed(): EmbedBuilder {
         "**Quick setup**",
         "1) Set your server timezone: `/meetup timezone-set timezone:<region/city>` (or pick from common choices)",
         "2) Create a group: `/group create name:<name> members:<optional>`",
-        "3) Propose a meetup: `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<HH:MM or h:MM AM/PM>`",
+        "3) Propose a meetup: `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<7pm or 7:15pm>`",
         "",
         "**Useful commands**",
         "- `/meetup timezone-show` - View server default timezone",

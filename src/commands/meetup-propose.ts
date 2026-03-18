@@ -40,12 +40,14 @@ export function addMeetupProposeSubcommand(builder: SlashCommandBuilder): void {
         option
           .setName("date")
           .setDescription("Date in YYYY-MM-DD (example: 2026-03-13)")
+          .setAutocomplete(true)
           .setRequired(true)
       )
       .addStringOption((option) =>
         option
           .setName("time")
-          .setDescription("Time in HH:MM or h:MM AM/PM (example: 7:00 PM)")
+          .setDescription("Time like 7pm or 7:15pm")
+          .setAutocomplete(true)
           .setRequired(true)
       )
   );

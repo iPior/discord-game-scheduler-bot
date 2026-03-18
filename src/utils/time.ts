@@ -71,6 +71,29 @@ function parseDateInput(input: string): { year: number; month: number; day: numb
   return { year, month, day };
 }
 
+function getCurrentDatePartsInTimeZone(timeZone: string): { year: number; month: number; day: number } | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(new Date());
+
+    const year = Number.parseInt(parts.find((part) => part.type === "year")?.value ?? "", 10);
+    const month = Number.parseInt(parts.find((part) => part.type === "month")?.value ?? "", 10);
+    const day = Number.parseInt(parts.find((part) => part.type === "day")?.value ?? "", 10);
+
+    if ([year, month, day].some((value) => Number.isNaN(value))) {
+      return null;
+    }
+
+    return { year, month, day };
+  } catch {
+    return null;
+  }
+}
+
 function parseTimeInput(input: string): { hour24: number; minute: number } | null {
   const trimmed = input.trim();
 
@@ -84,11 +107,25 @@ function parseTimeInput(input: string): { hour24: number; minute: number } | nul
   }
 
   const twelveHour = /^([1-9]|1[0-2]):([0-5]\d)\s*([AaPp][Mm])$/.exec(trimmed);
-  if (!twelveHour) return null;
+  if (twelveHour) {
+    const hour12 = Number.parseInt(twelveHour[1], 10);
+    const minute = Number.parseInt(twelveHour[2], 10);
+    const period = twelveHour[3].toUpperCase();
 
-  const hour12 = Number.parseInt(twelveHour[1], 10);
-  const minute = Number.parseInt(twelveHour[2], 10);
-  const period = twelveHour[3].toUpperCase();
+    const hour24 =
+      period === "AM"
+        ? (hour12 === 12 ? 0 : hour12)
+        : (hour12 === 12 ? 12 : hour12 + 12);
+
+    return { hour24, minute };
+  }
+
+  const naturalTwelveHour = /^([1-9]|1[0-2])(?:(?::([0-5]\d))|([0-5]\d))?\s*([AaPp][Mm])$/.exec(trimmed);
+  if (!naturalTwelveHour) return null;
+
+  const hour12 = Number.parseInt(naturalTwelveHour[1], 10);
+  const minute = Number.parseInt(naturalTwelveHour[2] ?? naturalTwelveHour[3] ?? "00", 10);
+  const period = naturalTwelveHour[4].toUpperCase();
 
   const hour24 =
     period === "AM"
@@ -226,14 +263,21 @@ export function buildMeetupSchedule(input: {
   timeInput: string;
   timeZoneInput: string;
 }): MeetupScheduleResult {
-  const parsedDate = parseDateInput(input.dateInput);
+  const normalizedDateInput = input.dateInput.trim().toLowerCase();
+  const parsedDate =
+    normalizedDateInput === "today"
+      ? getCurrentDatePartsInTimeZone(input.timeZoneInput)
+      : parseDateInput(input.dateInput);
   if (!parsedDate) {
-    return { ok: false, error: "Invalid date. Use YYYY-MM-DD (example: 2026-03-13)." };
+    return { ok: false, error: "Invalid date. Use YYYY-MM-DD or `today` (example: 2026-03-13)." };
   }
 
   const parsedTime = parseTimeInput(input.timeInput);
   if (!parsedTime) {
-    return { ok: false, error: "Invalid time. Use HH:MM (24h) or h:MM AM/PM (example: 7:00 PM)." };
+    return {
+      ok: false,
+      error: "Invalid time. Use natural format like 7pm or 7:15pm (24h like 19:15 also works)."
+    };
   }
 
   const timeZoneLabel = resolveTimeZoneLabel(

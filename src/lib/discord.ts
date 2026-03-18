@@ -19,6 +19,7 @@ import {
   handleGroupRemoveMembers
 } from "../commands/group-edit-members";
 import { handleGroupNameAutocomplete } from "../commands/group-autocomplete";
+import { handleMeetupDateTimeAutocomplete } from "../commands/meetup-datetime-autocomplete";
 import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/meetup-propose";
 import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetup-status";
 import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
@@ -178,9 +179,15 @@ function createMeetupCommand(): CommandDefinition {
     },
     async autocomplete(interaction) {
       const subcommand = interaction.options.getSubcommand();
+      const focused = interaction.options.getFocused(true);
 
-      if (subcommand === "propose") {
+      if (subcommand === "propose" && focused.name === "group") {
         await handleGroupNameAutocomplete(interaction);
+        return;
+      }
+
+      if ((subcommand === "propose" || subcommand === "edit") && (focused.name === "date" || focused.name === "time")) {
+        await handleMeetupDateTimeAutocomplete(interaction);
         return;
       }
 

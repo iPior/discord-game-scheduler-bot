@@ -14,7 +14,7 @@ const helpEmbed = new EmbedBuilder()
       "- `/group members group:<group>` - List members in a group.",
       "- `/group add-members group:<group> members:<csv>` - Add users to a group.",
       "- `/group remove-members group:<group> members:<csv>` - Remove users from a group.",
-      "- `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<HH:MM or h:MM AM/PM>` - Post a meetup with RSVP buttons.",
+      "- `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<7pm or 7:15pm>` - Post a meetup with RSVP buttons.",
       "- `/meetup status meetup_id:<id>` - Show RSVP lists for a meetup.",
       "- `/meetup edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.",
       "- `/meetup delete meetup_id:<id>` - Delete your meetup.",

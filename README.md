@@ -101,7 +101,7 @@ Permissions:
 
 ### `/meetup`
 
-- `propose group:<group> title:<title> date:<YYYY-MM-DD> time:<HH:MM or h:MM AM/PM>` - Post meetup with RSVP buttons.
+- `propose group:<group> title:<title> date:<YYYY-MM-DD> time:<7pm or 7:15pm>` - Post meetup with RSVP buttons.
 - `status meetup_id:<id>` - Show RSVP status for a meetup.
 - `edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.
 - `delete meetup_id:<id>` - Delete your meetup.
