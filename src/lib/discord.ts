@@ -32,6 +32,8 @@ import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/mee
 import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetup-status";
 import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
 import { addMeetupDeleteSubcommand, handleMeetupDelete } from "../commands/meetup-delete";
+import { addMeetupListSubcommand, handleMeetupList } from "../commands/meetup-list";
+import { addMeetupCancelSubcommand, handleMeetupCancel } from "../commands/meetup-cancel";
 import {
   addMeetupTimezoneSetSubcommand,
   addMeetupTimezoneShowSubcommand,
@@ -160,8 +162,10 @@ function createMeetupCommand(): CommandDefinition {
 
   addMeetupProposeSubcommand(data);
   addMeetupStatusSubcommand(data);
+  addMeetupListSubcommand(data);
   addMeetupEditSubcommand(data);
   addMeetupDeleteSubcommand(data);
+  addMeetupCancelSubcommand(data);
   addMeetupTimezoneSetSubcommand(data);
   addMeetupTimezoneShowSubcommand(data);
   addMeetupSetupSubcommand(data);
@@ -180,6 +184,11 @@ function createMeetupCommand(): CommandDefinition {
         return;
       }
 
+      if (subcommand === "list") {
+        await handleMeetupList(interaction);
+        return;
+      }
+
       if (subcommand === "edit") {
         await handleMeetupEdit(interaction);
         return;
@@ -187,6 +196,11 @@ function createMeetupCommand(): CommandDefinition {
 
       if (subcommand === "delete") {
         await handleMeetupDelete(interaction);
+        return;
+      }
+
+      if (subcommand === "cancel") {
+        await handleMeetupCancel(interaction);
         return;
       }
 

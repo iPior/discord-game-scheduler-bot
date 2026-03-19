@@ -37,6 +37,18 @@ export async function handleMeetupRsvpInteraction(interaction: ButtonInteraction
     return;
   }
 
+  if (typeof meetup.canceledAt === "number") {
+    await interaction.update({
+      components: [buildMeetupRsvpRow(meetup.id, true)]
+    });
+
+    await interaction.followUp({
+      content: "This meetup was canceled. RSVP is closed.",
+      ephemeral: true
+    });
+    return;
+  }
+
   if (nowUnixSeconds() >= meetup.expiresAt) {
     await interaction.update({
       components: [buildMeetupRsvpRow(meetup.id, true)]

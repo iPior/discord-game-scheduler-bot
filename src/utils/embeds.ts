@@ -25,11 +25,15 @@ export function buildMeetupEmbed(input: {
   groupName: string;
   proposedByUserId: string;
   timeText: string;
+  canceledAtUnix?: number | null;
+  canceledByUserId?: string | null;
   rsvpUserIds: { join: string[]; maybe: string[]; cant: string[] };
 }): EmbedBuilder {
-  return new EmbedBuilder()
-    .setTitle(input.title)
-    .setColor(0x1f8b4c)
+  const isCanceled = typeof input.canceledAtUnix === "number";
+
+  const embed = new EmbedBuilder()
+    .setTitle(isCanceled ? `[CANCELED] ${input.title}` : input.title)
+    .setColor(isCanceled ? 0xd64545 : 0x1f8b4c)
     .addFields(
       { name: "Group", value: input.groupName, inline: false },
       { name: "Proposed by", value: `<@${input.proposedByUserId}>`, inline: false },
@@ -50,6 +54,19 @@ export function buildMeetupEmbed(input: {
         inline: false
       }
     );
+
+  if (isCanceled) {
+    const canceledAt = `<t:${input.canceledAtUnix}:f>`;
+    const canceledBy =
+      typeof input.canceledByUserId === "string" ? `<@${input.canceledByUserId}>` : "Unknown";
+    embed.addFields({
+      name: "Status",
+      value: `Canceled by ${canceledBy} at ${canceledAt}.`,
+      inline: false
+    });
+  }
+
+  return embed;
 }
 
 export function buildMeetupRsvpRow(meetupId: number, disabled = false): ActionRowBuilder<ButtonBuilder> {

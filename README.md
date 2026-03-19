@@ -107,7 +107,9 @@ Permissions:
 
 - `propose group:<group> title:<title> date:<YYYY-MM-DD> time:<7pm or 7:15pm>` - Post meetup with RSVP buttons.
 - `status meetup_id:<id>` - Show RSVP status for a meetup.
+- `list` - List recent meetups in the server (includes meetup IDs and status).
 - `edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.
+- `cancel meetup_id:<id>` - Cancel a meetup without deleting its history.
 - `delete meetup_id:<id>` - Delete your meetup.
 - `timezone-set timezone:<region/city>` - Set default server timezone (with common choices in the command picker).
 - `timezone-show` - Show current default server timezone.
@@ -116,6 +118,7 @@ Permissions:
 Permissions:
 
 - `timezone-set` requires **Manage Server**.
+- `cancel` can be used by the proposer or users with **Manage Server**.
 - `edit` and `delete` can only be used by the user who proposed the meetup.
 
 ## RSVP Buttons

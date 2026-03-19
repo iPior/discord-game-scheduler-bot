@@ -113,6 +113,11 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
     return;
   }
 
+  if (typeof meetup.canceledAt === "number") {
+    await interaction.reply({ content: "Canceled meetups cannot be edited.", ephemeral: true });
+    return;
+  }
+
   if (meetup.proposedBy !== interaction.user.id) {
     await interaction.reply({ content: "Only the user who proposed this meetup can edit it.", ephemeral: true });
     return;
@@ -144,6 +149,8 @@ export async function handleMeetupEdit(interaction: ChatInputCommandInteraction)
     groupName: updatedMeetup.groupName,
     proposedByUserId: updatedMeetup.proposedBy,
     timeText: updatedMeetup.timeText,
+    canceledAtUnix: updatedMeetup.canceledAt,
+    canceledByUserId: updatedMeetup.canceledBy,
     rsvpUserIds: {
       join: joinUserIds,
       maybe: maybeUserIds,

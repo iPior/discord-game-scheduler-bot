@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "./client";
 import { groupMembers, groups, guildSettings, meetups, rsvps } from "./schema";
 import { nowUnixSeconds } from "../utils/time";
@@ -351,6 +351,19 @@ export async function deleteMeetupById(meetupId: number): Promise<void> {
   await db.delete(meetups).where(eq(meetups.id, meetupId));
 }
 
+export async function cancelMeetup(input: {
+  meetupId: number;
+  canceledByUserId: string;
+}): Promise<void> {
+  await db
+    .update(meetups)
+    .set({
+      canceledAt: nowUnixSeconds(),
+      canceledBy: input.canceledByUserId
+    })
+    .where(eq(meetups.id, input.meetupId));
+}
+
 export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
   id: number;
   guildId: string;
@@ -362,6 +375,8 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
   proposedBy: string;
   expiresAt: number;
   reminderSentAt: number | null;
+  canceledAt: number | null;
+  canceledBy: string | null;
   channelId: string | null;
   messageId: string | null;
 } | null> {
@@ -377,6 +392,8 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
       proposedBy: meetups.proposedBy,
       expiresAt: meetups.expiresAt,
       reminderSentAt: meetups.reminderSentAt,
+      canceledAt: meetups.canceledAt,
+      canceledBy: meetups.canceledBy,
       channelId: meetups.channelId,
       messageId: meetups.messageId
     })
@@ -386,6 +403,34 @@ export async function getMeetupByIdWithGroup(meetupId: number): Promise<{
     .limit(1);
 
   return rows[0] ?? null;
+}
+
+export async function listMeetupsForGuild(guildId: string): Promise<
+  Array<{
+    id: number;
+    title: string;
+    groupName: string;
+    timeText: string;
+    startsAt: number | null;
+    proposedBy: string;
+    canceledAt: number | null;
+  }>
+> {
+  return db
+    .select({
+      id: meetups.id,
+      title: meetups.title,
+      groupName: groups.name,
+      timeText: meetups.timeText,
+      startsAt: meetups.startsAt,
+      proposedBy: meetups.proposedBy,
+      canceledAt: meetups.canceledAt
+    })
+    .from(meetups)
+    .innerJoin(groups, eq(groups.id, meetups.groupId))
+    .where(eq(meetups.guildId, guildId))
+    .orderBy(desc(meetups.createdAt))
+    .limit(20);
 }
 
 export async function listMeetupsDueForOneHourReminder(nowUnix: number): Promise<
@@ -414,6 +459,7 @@ export async function listMeetupsDueForOneHourReminder(nowUnix: number): Promise
     .where(
       and(
         sql`${meetups.reminderSentAt} is null`,
+        sql`${meetups.canceledAt} is null`,
         sql`${meetups.channelId} is not null`,
         sql`${meetups.startsAt} <= ${reminderThreshold}`,
         sql`${meetups.startsAt} > ${nowUnix}`

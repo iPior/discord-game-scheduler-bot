@@ -63,8 +63,15 @@ export async function handleMeetupStatus(interaction: ChatInputCommandInteractio
     noUserIds
   });
 
+  const canceledByText =
+    typeof meetup.canceledBy === "string" ? `<@${meetup.canceledBy}>` : "unknown user";
+  const canceledSuffix =
+    typeof meetup.canceledAt === "number"
+      ? `\nStatus: Canceled by ${canceledByText} at <t:${meetup.canceledAt}:f>.`
+      : "";
+
   await interaction.reply({
-    content: statusText,
+    content: `${statusText}${canceledSuffix}`,
     ephemeral: true
   });
 }

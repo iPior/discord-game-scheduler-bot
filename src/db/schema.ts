@@ -55,6 +55,8 @@ export const meetups = sqliteTable("meetups", {
   proposedBy: text("proposed_by").notNull(),
   expiresAt: integer("expires_at").notNull(),
   reminderSentAt: integer("reminder_sent_at"),
+  canceledAt: integer("canceled_at"),
+  canceledBy: text("canceled_by"),
   channelId: text("channel_id"),
   messageId: text("message_id"),
   createdAt: integer("created_at").notNull().default(sql`(unixepoch())`)
