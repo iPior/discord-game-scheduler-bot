@@ -33,26 +33,28 @@ function canManageTimezone(interaction: ChatInputCommandInteraction): boolean {
   return Boolean(interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild));
 }
 
-export function addMeetupTimezoneSetSubcommand(builder: SlashCommandBuilder): void {
-  builder.addSubcommand((sub) =>
-    sub
-      .setName("timezone-set")
-      .setDescription("Set the default meetup timezone for this server")
-      .addStringOption((option) =>
-        option
-          .setName("timezone")
-          .setDescription("Pick from list or type a region/city timezone")
-          .addChoices(...COMMON_TIMEZONE_CHOICES)
-          .setRequired(true)
+export function addSettingsTimezoneSubcommandGroup(builder: SlashCommandBuilder): void {
+  builder.addSubcommandGroup((group) =>
+    group
+      .setName("timezone")
+      .setDescription("Manage server default timezone")
+      .addSubcommand((sub) =>
+        sub
+          .setName("set")
+          .setDescription("Set the default meetup timezone for this server")
+          .addStringOption((option) =>
+            option
+              .setName("timezone")
+              .setDescription("Pick from list or type a region/city timezone")
+              .addChoices(...COMMON_TIMEZONE_CHOICES)
+              .setRequired(true)
+          )
       )
-  );
-}
-
-export function addMeetupTimezoneShowSubcommand(builder: SlashCommandBuilder): void {
-  builder.addSubcommand((sub) =>
-    sub
-      .setName("timezone-show")
-      .setDescription("Show the default meetup timezone for this server")
+      .addSubcommand((sub) =>
+        sub
+          .setName("show")
+          .setDescription("Show the default meetup timezone for this server")
+      )
   );
 }
 
@@ -99,7 +101,7 @@ export async function handleMeetupTimezoneShow(interaction: ChatInputCommandInte
 
   if (!defaultTimeZone) {
     await interaction.reply({
-      content: "No default meetup timezone is set yet. Use `/meetup timezone-set` and pick one from the list.",
+      content: "No default meetup timezone is set yet. Use `/settings timezone set` and pick one from the list.",
       ephemeral: true
     });
     return;

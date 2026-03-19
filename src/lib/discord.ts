@@ -37,8 +37,7 @@ import { addMeetupMineSubcommand, handleMeetupMine } from "../commands/meetup-mi
 import { addMeetupUpcomingSubcommand, handleMeetupUpcoming } from "../commands/meetup-upcoming";
 import { addMeetupCancelSubcommand, handleMeetupCancel } from "../commands/meetup-cancel";
 import {
-  addMeetupTimezoneSetSubcommand,
-  addMeetupTimezoneShowSubcommand,
+  addSettingsTimezoneSubcommandGroup,
   handleMeetupTimezoneSet,
   handleMeetupTimezoneShow
 } from "../commands/meetup-timezone";
@@ -170,8 +169,6 @@ function createMeetupCommand(): CommandDefinition {
   addMeetupEditSubcommand(data);
   addMeetupDeleteSubcommand(data);
   addMeetupCancelSubcommand(data);
-  addMeetupTimezoneSetSubcommand(data);
-  addMeetupTimezoneShowSubcommand(data);
   addMeetupSetupSubcommand(data);
 
   return {
@@ -218,16 +215,6 @@ function createMeetupCommand(): CommandDefinition {
         return;
       }
 
-      if (subcommand === "timezone-set") {
-        await handleMeetupTimezoneSet(interaction);
-        return;
-      }
-
-      if (subcommand === "timezone-show") {
-        await handleMeetupTimezoneShow(interaction);
-        return;
-      }
-
       if (subcommand === "setup") {
         await handleMeetupSetup(interaction);
         return;
@@ -257,8 +244,39 @@ function createMeetupCommand(): CommandDefinition {
   };
 }
 
+function createSettingsCommand(): CommandDefinition {
+  const data = new SlashCommandBuilder()
+    .setName("settings")
+    .setDescription("Manage server meetup settings");
+
+  addSettingsTimezoneSubcommandGroup(data);
+
+  return {
+    data,
+    async execute(interaction) {
+      const subcommandGroup = interaction.options.getSubcommandGroup(false);
+      const subcommand = interaction.options.getSubcommand();
+
+      if (subcommandGroup === "timezone" && subcommand === "set") {
+        await handleMeetupTimezoneSet(interaction);
+        return;
+      }
+
+      if (subcommandGroup === "timezone" && subcommand === "show") {
+        await handleMeetupTimezoneShow(interaction);
+        return;
+      }
+
+      await interaction.reply({
+        content: "Unknown settings subcommand.",
+        ephemeral: true
+      });
+    }
+  };
+}
+
 export function getCommandDefinitions(): CommandDefinition[] {
-  return [pingCommand, createGroupCommand(), createListCommand(), createMeetupCommand()];
+  return [pingCommand, createGroupCommand(), createListCommand(), createMeetupCommand(), createSettingsCommand()];
 }
 
 export function getCommandPayloads(): RESTPostAPIChatInputApplicationCommandsJSONBody[] {
