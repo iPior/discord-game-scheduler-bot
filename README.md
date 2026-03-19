@@ -89,6 +89,9 @@ You can also pass a custom service name:
 - `members group:<group>` - Show members in a group.
 - `add-members group:<group> members:<csv mentions/ids>` - Add members to a group.
 - `remove-members group:<group> members:<csv mentions/ids>` - Remove members from a group.
+- `delete group:<group>` - Delete a group.
+- `rename group:<group> new-name:<name>` - Rename a group.
+- `leave group:<group>` - Leave a group you are currently in.
 - `help` - Show in-Discord help.
 
 ### `/list`
@@ -98,6 +101,7 @@ You can also pass a custom service name:
 Permissions:
 
 - `add-members` / `remove-members` can be used by the group creator or users with **Manage Server**.
+- `delete` / `rename` can be used by the group creator or users with **Manage Server**.
 
 ### `/meetup`
 

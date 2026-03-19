@@ -219,6 +219,41 @@ export async function removeMembersFromGroup(groupId: number, userIds: string[])
   return existing.length;
 }
 
+export async function renameGroupInGuild(input: {
+  guildId: string;
+  groupId: number;
+  newName: string;
+}): Promise<{ ok: true; name: string } | { ok: false; reason: "duplicate_name" }> {
+  const normalized = input.newName.trim();
+
+  const existing = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .where(
+      and(
+        eq(groups.guildId, input.guildId),
+        sql`lower(${groups.name}) = ${normalized.toLowerCase()}`
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0 && existing[0]?.id !== input.groupId) {
+    return { ok: false, reason: "duplicate_name" };
+  }
+
+  const [updated] = await db
+    .update(groups)
+    .set({ name: normalized })
+    .where(eq(groups.id, input.groupId))
+    .returning({ name: groups.name });
+
+  return { ok: true, name: updated.name };
+}
+
+export async function deleteGroupById(groupId: number): Promise<void> {
+  await db.delete(groups).where(eq(groups.id, groupId));
+}
+
 export async function isUserMemberOfGroup(groupId: number, userId: string): Promise<boolean> {
   const rows = await db
     .select({ id: groupMembers.id })

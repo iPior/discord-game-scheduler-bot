@@ -18,6 +18,14 @@ import {
   handleGroupAddMembers,
   handleGroupRemoveMembers
 } from "../commands/group-edit-members";
+import {
+  addGroupDeleteSubcommand,
+  addGroupLeaveSubcommand,
+  addGroupRenameSubcommand,
+  handleGroupDelete,
+  handleGroupLeave,
+  handleGroupRename
+} from "../commands/group-manage";
 import { handleGroupNameAutocomplete } from "../commands/group-autocomplete";
 import { handleMeetupDateTimeAutocomplete } from "../commands/meetup-datetime-autocomplete";
 import { addMeetupProposeSubcommand, handleMeetupPropose } from "../commands/meetup-propose";
@@ -47,6 +55,9 @@ function createGroupCommand(): CommandDefinition {
   addGroupMembersSubcommand(data);
   addGroupAddMembersSubcommand(data);
   addGroupRemoveMembersSubcommand(data);
+  addGroupDeleteSubcommand(data);
+  addGroupRenameSubcommand(data);
+  addGroupLeaveSubcommand(data);
   addGroupHelpSubcommand(data);
 
   return {
@@ -73,6 +84,21 @@ function createGroupCommand(): CommandDefinition {
         return;
       }
 
+      if (subcommand === "delete") {
+        await handleGroupDelete(interaction);
+        return;
+      }
+
+      if (subcommand === "rename") {
+        await handleGroupRename(interaction);
+        return;
+      }
+
+      if (subcommand === "leave") {
+        await handleGroupLeave(interaction);
+        return;
+      }
+
       if (subcommand === "help") {
         await handleGroupHelp(interaction);
         return;
@@ -86,7 +112,14 @@ function createGroupCommand(): CommandDefinition {
     async autocomplete(interaction) {
       const subcommand = interaction.options.getSubcommand();
 
-      if (subcommand === "members" || subcommand === "add-members" || subcommand === "remove-members") {
+      if (
+        subcommand === "members" ||
+        subcommand === "add-members" ||
+        subcommand === "remove-members" ||
+        subcommand === "delete" ||
+        subcommand === "rename" ||
+        subcommand === "leave"
+      ) {
         await handleGroupNameAutocomplete(interaction);
         return;
       }
