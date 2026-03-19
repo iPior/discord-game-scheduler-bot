@@ -433,6 +433,64 @@ export async function listMeetupsForGuild(guildId: string): Promise<
     .limit(20);
 }
 
+export async function listMeetupsForUserInGuild(input: {
+  guildId: string;
+  userId: string;
+}): Promise<
+  Array<{
+    id: number;
+    title: string;
+    timeText: string;
+    startsAt: number | null;
+    canceledAt: number | null;
+  }>
+> {
+  return db
+    .select({
+      id: meetups.id,
+      title: meetups.title,
+      timeText: meetups.timeText,
+      startsAt: meetups.startsAt,
+      canceledAt: meetups.canceledAt
+    })
+    .from(meetups)
+    .where(and(eq(meetups.guildId, input.guildId), eq(meetups.proposedBy, input.userId)))
+    .orderBy(desc(meetups.createdAt))
+    .limit(20);
+}
+
+export async function listUpcomingMeetupsForGuild(guildId: string): Promise<
+  Array<{
+    id: number;
+    title: string;
+    timeText: string;
+    startsAt: number;
+  }>
+> {
+  const nowUnix = nowUnixSeconds();
+
+  const rows = await db
+    .select({
+      id: meetups.id,
+      title: meetups.title,
+      timeText: meetups.timeText,
+      startsAt: meetups.startsAt
+    })
+    .from(meetups)
+    .where(
+      and(
+        eq(meetups.guildId, guildId),
+        sql`${meetups.canceledAt} is null`,
+        sql`${meetups.startsAt} is not null`,
+        sql`${meetups.startsAt} > ${nowUnix}`
+      )
+    )
+    .orderBy(asc(meetups.startsAt))
+    .limit(10);
+
+  return rows.filter((row): row is typeof row & { startsAt: number } => typeof row.startsAt === "number");
+}
+
 export async function listMeetupsDueForOneHourReminder(nowUnix: number): Promise<
   Array<{
     id: number;

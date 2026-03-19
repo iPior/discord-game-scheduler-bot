@@ -20,6 +20,8 @@ const helpEmbed = new EmbedBuilder()
       "- `/meetup propose group:<group> title:<title> date:<YYYY-MM-DD> time:<7pm or 7:15pm>` - Post a meetup with RSVP buttons.",
       "- `/meetup status meetup_id:<id>` - Show RSVP lists for a meetup.",
       "- `/meetup list` - List recent meetup IDs and status in this server.",
+      "- `/meetup mine` - List meetup IDs you proposed in this server.",
+      "- `/meetup upcoming` - List the next upcoming meetups in this server.",
       "- `/meetup edit meetup_id:<id> title:<optional> date:<optional> time:<optional>` - Edit your meetup.",
       "- `/meetup cancel meetup_id:<id>` - Cancel a meetup (proposer or Manage Server).",
       "- `/meetup delete meetup_id:<id>` - Delete your meetup.",

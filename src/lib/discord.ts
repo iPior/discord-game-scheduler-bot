@@ -33,6 +33,8 @@ import { addMeetupStatusSubcommand, handleMeetupStatus } from "../commands/meetu
 import { addMeetupEditSubcommand, handleMeetupEdit } from "../commands/meetup-edit";
 import { addMeetupDeleteSubcommand, handleMeetupDelete } from "../commands/meetup-delete";
 import { addMeetupListSubcommand, handleMeetupList } from "../commands/meetup-list";
+import { addMeetupMineSubcommand, handleMeetupMine } from "../commands/meetup-mine";
+import { addMeetupUpcomingSubcommand, handleMeetupUpcoming } from "../commands/meetup-upcoming";
 import { addMeetupCancelSubcommand, handleMeetupCancel } from "../commands/meetup-cancel";
 import {
   addMeetupTimezoneSetSubcommand,
@@ -163,6 +165,8 @@ function createMeetupCommand(): CommandDefinition {
   addMeetupProposeSubcommand(data);
   addMeetupStatusSubcommand(data);
   addMeetupListSubcommand(data);
+  addMeetupMineSubcommand(data);
+  addMeetupUpcomingSubcommand(data);
   addMeetupEditSubcommand(data);
   addMeetupDeleteSubcommand(data);
   addMeetupCancelSubcommand(data);
@@ -186,6 +190,16 @@ function createMeetupCommand(): CommandDefinition {
 
       if (subcommand === "list") {
         await handleMeetupList(interaction);
+        return;
+      }
+
+      if (subcommand === "mine") {
+        await handleMeetupMine(interaction);
+        return;
+      }
+
+      if (subcommand === "upcoming") {
+        await handleMeetupUpcoming(interaction);
         return;
       }
 
