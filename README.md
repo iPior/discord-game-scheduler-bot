@@ -77,6 +77,30 @@ You can also pass a custom service name:
 ./stop.sh my-service-name
 ```
 
+## GitHub Actions CI/CD
+
+This repo includes:
+
+- CI: `.github/workflows/ci.yml`
+  - Runs on pushes to `main` and pull requests
+  - Installs dependencies and runs `bunx tsc --noEmit`
+- CD: `.github/workflows/deploy.yml`
+  - Runs automatically after CI succeeds on `main`
+  - Can also be run manually from the Actions tab (`workflow_dispatch`)
+  - Connects to your VPS over SSH and runs `/opt/discord-game-scheduler-bot/deploy.sh`
+
+Set these repository secrets in **GitHub -> Settings -> Secrets and variables -> Actions**:
+
+- `VPS_HOST` (for example, `203.0.113.5`)
+- `VPS_USER` (for example, `ubuntu`)
+- `VPS_SSH_PORT` (for example, `22`)
+- `VPS_SSH_KEY` (private key contents; public key must be in `~/.ssh/authorized_keys` for `VPS_USER`)
+
+Notes:
+
+- The deploy script uses `sudo systemctl restart discord-bot`, so your VPS user should be allowed to run that command non-interactively.
+- Keep your bot `.env` on the VPS at `/opt/discord-game-scheduler-bot`; GitHub Actions does not upload secrets for runtime bot env vars in this setup.
+
 ## Discord Slash Commands
 
 ### `/ping`
